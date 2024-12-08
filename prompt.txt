@@ -94,3 +94,342 @@ if __name__ == "__main__":
         print("This script currently supports only Linux and macOS.")
     else:
         curses.wrapper(tui_setup)
+
+
+PROMPT: Coud you do so that the programm only wokrs on windows instead
+RES: 
+
+import os
+import subprocess
+import platform
+import curses
+
+def install_package(package_name, install_command):
+    """Installs a package using the system's package manager."""
+    try:
+        subprocess.run(install_command, shell=True, check=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+def create_folder_structure(base_dir):
+    """Creates folder structure for projects."""
+    folders = ['personal', 'work']
+    for folder in folders:
+        path = os.path.join(base_dir, folder)
+        os.makedirs(path, exist_ok=True)
+
+def tui_setup(stdscr):
+    """TUI for selecting and setting up development environment."""
+    curses.curs_set(0)
+    stdscr.clear()
+
+    options = [
+        "Install Python",
+        "Install Visual Studio Code",
+        "Install PostgreSQL",
+        "Install Docker",
+        "Create Folder Structure",
+        "Exit"
+    ]
+    selected_index = 0
+
+    while True:
+        stdscr.clear()
+        stdscr.addstr(0, 0, "Windows Dev Machine Setup", curses.A_BOLD | curses.A_UNDERLINE)
+
+        for idx, option in enumerate(options):
+            if idx == selected_index:
+                stdscr.addstr(idx + 2, 2, f"> {option}", curses.A_REVERSE)
+            else:
+                stdscr.addstr(idx + 2, 2, f"  {option}")
+
+        stdscr.refresh()
+
+        key = stdscr.getch()
+        if key == curses.KEY_UP and selected_index > 0:
+            selected_index -= 1
+        elif key == curses.KEY_DOWN and selected_index < len(options) - 1:
+            selected_index += 1
+        elif key == curses.KEY_ENTER or key in [10, 13]:
+            stdscr.clear()
+            stdscr.addstr(0, 0, f"Selected: {options[selected_index]}")
+            stdscr.refresh()
+
+            if options[selected_index] == "Install Python":
+                stdscr.addstr(1, 0, "Installing Python...")
+                stdscr.refresh()
+                success = install_package("Python", "winget install -e --id Python.Python.3")
+                stdscr.addstr(2, 0, "Success" if success else "Failed")
+            elif options[selected_index] == "Install Visual Studio Code":
+                stdscr.addstr(1, 0, "Installing Visual Studio Code...")
+                stdscr.refresh()
+                success = install_package("VS Code", "winget install -e --id Microsoft.VisualStudioCode")
+                stdscr.addstr(2, 0, "Success" if success else "Failed")
+            elif options[selected_index] == "Install PostgreSQL":
+                stdscr.addstr(1, 0, "Installing PostgreSQL...")
+                stdscr.refresh()
+                success = install_package("PostgreSQL", "winget install -e --id PostgreSQL.PostgreSQL")
+                stdscr.addstr(2, 0, "Success" if success else "Failed")
+            elif options[selected_index] == "Install Docker":
+                stdscr.addstr(1, 0, "Installing Docker...")
+                stdscr.refresh()
+                success = install_package("Docker", "winget install -e --id Docker.DockerDesktop")
+                stdscr.addstr(2, 0, "Success" if success else "Failed")
+            elif options[selected_index] == "Create Folder Structure":
+                stdscr.addstr(1, 0, "Creating folder structure in C:\\projects...")
+                stdscr.refresh()
+                create_folder_structure("C:\\projects")
+                stdscr.addstr(2, 0, "Folder structure created!")
+            elif options[selected_index] == "Exit":
+                break
+
+            stdscr.addstr(4, 0, "Press any key to continue...")
+            stdscr.refresh()
+            stdscr.getch()
+
+if __name__ == "__main__":
+    if platform.system() != "Windows":
+        print("This script is designed to run on Windows only.")
+    else:
+        curses.wrapper(tui_setup)
+
+
+PROMPT: I got this error when running the code ModuleNotFoundError: No module named '_curses'
+RES: 
+
+To fix this issue, you can replace the curses-based Terminal User Interface (TUI) with a library that is Windows-compatible, such as npyscreen or prompt_toolkit. Below is an updated script using the prompt_toolkit library for better cross-platform support.
+
+Updated Script Using prompt_toolkit
+Install prompt_toolkit: Run the following command to install the library: pip install prompt_toolkit
+
+Updated Script:
+
+import os
+import subprocess
+import platform
+from prompt_toolkit.shortcuts import radiolist_dialog
+
+def install_package(package_name, install_command):
+    """Installs a package using the system's package manager."""
+    try:
+        subprocess.run(install_command, shell=True, check=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+def create_folder_structure(base_dir):
+    """Creates folder structure for projects."""
+    folders = ['personal', 'work']
+    for folder in folders:
+        path = os.path.join(base_dir, folder)
+        os.makedirs(path, exist_ok=True)
+
+def setup_dev_environment():
+    """Interactive menu for setting up the development environment."""
+    options = [
+        ("Install Python", "python"),
+        ("Install Visual Studio Code", "vscode"),
+        ("Install PostgreSQL", "postgresql"),
+        ("Install Docker", "docker"),
+        ("Create Folder Structure", "folders"),
+        ("Exit", "exit"),
+    ]
+
+    while True:
+        result = radiolist_dialog(
+            title="Windows Dev Machine Setup",
+            text="Select an option to proceed:",
+            values=options,
+        ).run()
+
+        if result == "python":
+            print("Installing Python...")
+            success = install_package("Python", "winget install -e --id Python.Python.3")
+            print("Python installation", "successful!" if success else "failed.")
+        elif result == "vscode":
+            print("Installing Visual Studio Code...")
+            success = install_package("VS Code", "winget install -e --id Microsoft.VisualStudioCode")
+            print("VS Code installation", "successful!" if success else "failed.")
+        elif result == "postgresql":
+            print("Installing PostgreSQL...")
+            success = install_package("PostgreSQL", "winget install -e --id PostgreSQL.PostgreSQL")
+            print("PostgreSQL installation", "successful!" if success else "failed.")
+        elif result == "docker":
+            print("Installing Docker...")
+            success = install_package("Docker", "winget install -e --id Docker.DockerDesktop")
+            print("Docker installation", "successful!" if success else "failed.")
+        elif result == "folders":
+            print("Creating folder structure in C:\\projects...")
+            create_folder_structure("C:\\projects")
+            print("Folder structure created!")
+        elif result == "exit" or result is None:
+            print("Exiting the setup.")
+            break
+
+if __name__ == "__main__":
+    if platform.system() != "Windows":
+        print("This script is designed to run on Windows only.")
+    else:
+        setup_dev_environment()
+
+
+PROMPT: I liked the other version better, however, when i select an option nothing happens when i click ok
+RES: 
+
+If clicking "OK" after selecting an option in the radiolist_dialog doesn't trigger any action, it could mean the dialog isn't returning the selected value correctly. Let's debug and fix this issue.
+
+Key Checkpoints
+Ensure radiolist_dialog Works Correctly:
+
+The result returned by radiolist_dialog should correspond to the selected value.
+Add debugging print statements to check what result contains after the dialog is closed.
+Update the Code to Handle Result Properly:
+
+If the result is None, the user likely closed the dialog or clicked "Cancel."
+If result contains the selected value, the script should process it correctly.
+Debugging and Fixing the Issue
+Here’s the updated setup_dev_environment function with debugging:
+
+def setup_dev_environment():
+    """Interactive menu for setting up the development environment."""
+    options = [
+        ("Install Python", "python"),
+        ("Install Visual Studio Code", "vscode"),
+        ("Install PostgreSQL", "postgresql"),
+        ("Install Docker", "docker"),
+        ("Create Folder Structure", "folders"),
+        ("Exit", "exit"),
+    ]
+
+    while True:
+        result = radiolist_dialog(
+            title="Windows Dev Machine Setup",
+            text="Select an option to proceed:",
+            values=options,
+        ).run()
+
+        # Debug: Print the result to check what the dialog returns
+        print(f"DEBUG: User selected: {result}")
+
+        if not result:  # Handle "Cancel" or dialog closure
+            print("Exiting the setup.")
+            break
+
+        if result == "python":
+            print("Installing Python...")
+            success = install_package("Python", "winget install -e --id Python.Python.3")
+            print("Python installation", "successful!" if success else "failed.")
+        elif result == "vscode":
+            print("Installing Visual Studio Code...")
+            success = install_package("VS Code", "winget install -e --id Microsoft.VisualStudioCode")
+            print("VS Code installation", "successful!" if success else "failed.")
+        elif result == "postgresql":
+            print("Installing PostgreSQL...")
+            success = install_package("PostgreSQL", "winget install -e --id PostgreSQL.PostgreSQL")
+            print("PostgreSQL installation", "successful!" if success else "failed.")
+        elif result == "docker":
+            print("Installing Docker...")
+            success = install_package("Docker", "winget install -e --id Docker.DockerDesktop")
+            print("Docker installation", "successful!" if success else "failed.")
+        elif result == "folders":
+            print("Creating folder structure in C:\\projects...")
+            create_folder_structure("C:\\projects")
+            print("Folder structure created!")
+        elif result == "exit":
+            print("Exiting the setup.")
+            break
+
+PROPMT: I got this message: DEBUG: User selected: None
+RES: 
+
+The message DEBUG: User selected: None means that no option was selected or the dialog was canceled, which indicates that radiolist_dialog didn't register a valid selection. This might be happening because the dialog is not receiving focus, or the selection is not confirmed properly.
+
+Let's try a few things to resolve this issue:
+
+1. Ensure Selection is Made
+Make sure you are highlighting the option and pressing Enter to confirm the selection. If you're using the arrow keys to select an option, you should see the option highlighted. Then, press Enter to confirm the selection.
+
+2. Use prompt_toolkit's Input Dialog
+Sometimes, radiolist_dialog can behave unexpectedly, especially when used in certain environments. We can try using a simple prompt_toolkit input dialog to verify if the input flow is working as expected.
+
+Here is an updated script using prompt_toolkit's prompt for a simpler, clearer interaction:
+
+import os
+import subprocess
+import platform
+from prompt_toolkit import prompt
+from prompt_toolkit.validation import Validator, ValidationError
+
+def install_package(package_name, install_command):
+    """Installs a package using the system's package manager."""
+    try:
+        subprocess.run(install_command, shell=True, check=True)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+def create_folder_structure(base_dir):
+    """Creates folder structure for projects."""
+    folders = ['personal', 'work']
+    for folder in folders:
+        path = os.path.join(base_dir, folder)
+        os.makedirs(path, exist_ok=True)
+
+def get_user_selection():
+    """Prompts user to choose an option."""
+    options = [
+        "1. Install Python",
+        "2. Install Visual Studio Code",
+        "3. Install PostgreSQL",
+        "4. Install Docker",
+        "5. Create Folder Structure",
+        "6. Exit"
+    ]
+
+    # Show options to the user
+    print("\n".join(options))
+
+    # Get input and validate
+    while True:
+        selection = prompt("Please select an option by number (1-6): ")
+
+        if selection in ['1', '2', '3', '4', '5', '6']:
+            return int(selection)
+        else:
+            print("Invalid selection, please enter a number between 1 and 6.")
+
+def setup_dev_environment():
+    """Interactive menu for setting up the development environment."""
+    while True:
+        user_choice = get_user_selection()
+
+        if user_choice == 1:
+            print("Installing Python...")
+            success = install_package("Python", "winget install -e --id Python.Python.3")
+            print("Python installation", "successful!" if success else "failed.")
+        elif user_choice == 2:
+            print("Installing Visual Studio Code...")
+            success = install_package("VS Code", "winget install -e --id Microsoft.VisualStudioCode")
+            print("VS Code installation", "successful!" if success else "failed.")
+        elif user_choice == 3:
+            print("Installing PostgreSQL...")
+            success = install_package("PostgreSQL", "winget install -e --id PostgreSQL.PostgreSQL")
+            print("PostgreSQL installation", "successful!" if success else "failed.")
+        elif user_choice == 4:
+            print("Installing Docker...")
+            success = install_package("Docker", "winget install -e --id Docker.DockerDesktop")
+            print("Docker installation", "successful!" if success else "failed.")
+        elif user_choice == 5:
+            print("Creating folder structure in C:\\projects...")
+            create_folder_structure("C:\\projects")
+            print("Folder structure created!")
+        elif user_choice == 6:
+            print("Exiting the setup.")
+            break
+
+if __name__ == "__main__":
+    if platform.system() != "Windows":
+        print("This script is designed to run on Windows only.")
+    else:
+        setup_dev_environment()

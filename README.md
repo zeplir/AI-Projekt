@@ -4,7 +4,7 @@ This is a project where I am going to create a program using only AI. All of the
 
 To use this application you need the following requirements: 
     1. Python installed
-    2. and promptkit installed. 
+    2. Promptkit installed. 
 
     1. Installing Python
         To install python simply visit their website and install python, don't forget to check the box which adds python to the path.
